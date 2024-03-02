@@ -1,0 +1,31 @@
+{
+  "name": "under-new-management",
+  "version": "0.0.1",
+  "description": "Early warning system for acquired extensions",
+  "scripts": {
+    "start": "parcel watch src/manifest.json --host localhost --config @parcel/config-webextension",
+    "build": "parcel build src/manifest.json --config @parcel/config-webextension"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/msfrisbie/under-new-management.git"
+  },
+  "author": "msfrisbie@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/msfrisbie/under-new-management/issues"
+  },
+  "homepage": "https://github.com/msfrisbie/under-new-management#readme",
+  "devDependencies": {
+    "@parcel/config-webextension": "^2.12.0",
+    "parcel": "^2.12.0",
+    "postcss": "^8.4.35",
+    "process": "^0.11.10",
+    "tailwindcss": "^3.4.1"
+  },
+  "dependencies": {
+    "@types/chrome": "^0.0.262",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

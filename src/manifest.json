@@ -1,0 +1,14 @@
+{
+  "name": "Under New Management",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "background.ts",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/index.html"
+  },
+  "permissions": ["alarms", "management", "storage", "offscreen"],
+  "optional_permissions": ["notifications"]
+}
