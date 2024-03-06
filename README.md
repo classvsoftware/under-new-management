@@ -6,6 +6,8 @@
 
 Intermittenty checks your installed extensions to see if the developer information listed on the Chrome Web Store has changed. If anything is different, the extension icon will display a red badge, alerting you to the change.
 
+Created by [Matt Frisbie](https://www.mattfriz.com/)
+
 [Hacker News discussion](https://news.ycombinator.com/item?id=39620060)
 
 ![image](unm-screenshot-1280x800.png)
