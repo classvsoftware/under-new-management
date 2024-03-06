@@ -8,6 +8,14 @@ Intermittenty checks your installed extensions to see if the developer informati
 
 ![image](unm-screenshot-1280x800.png)
 
+## Why is this needed?
+
+Extension developers are [constantly getting offers to buy their extensions](https://github.com/extesy/hoverzoom/discussions/670). In nearly every case, the people buying these extensions want to rip off the existing users.
+
+**The users of these extensions have no idea the extension they have installed is compromised.**
+
+Under New Management gives users notice of the change of ownership, giving them a chance to make an informed decision about the software they're using.
+
 ## Installation
 
 Install here: (pending Chrome Web Store approval)
@@ -24,4 +32,4 @@ Install here: (pending Chrome Web Store approval)
 
 ## Why does this need an external server?
 
-Browsers have special rules about modifying extension marketplace domains. For example, you cannot set `declarative_net_request` rules for `chromewebstore.google.com`. Therefore, this extension delegates the developer info checking to the ExBoost API server.
+Browsers have special rules about modifying extension marketplace domains. For example, you cannot set `declarative_net_request` rules for `chromewebstore.google.com`. Therefore, this extension delegates the developer info checking to the [ExBoost](https://extensionboost.com) API server.
