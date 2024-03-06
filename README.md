@@ -26,7 +26,7 @@ Install here: (pending Chrome Web Store approval)
 
 OR
 
-Download a [prebuild release](https://github.com/classvsoftware/under-new-management/releases), unpack the .zip file, and load the `dist` directory into Chrome.
+Download a [prebuilt release](https://github.com/classvsoftware/under-new-management/releases), unpack the .zip file, and load the `dist` directory into Chrome.
 
 ## Building from source
 
