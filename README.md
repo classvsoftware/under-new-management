@@ -24,6 +24,10 @@ Under New Management gives users notice of the change of ownership, giving them 
 
 Install here: (pending Chrome Web Store approval)
 
+OR
+
+Download a [prebuild release](https://github.com/classvsoftware/under-new-management/releases), unpack the .zip file, and load the `dist` directory into Chrome.
+
 ## Building from source
 
 **Under New Management** uses Parcel, React, Typescript, and TailwindCSS
