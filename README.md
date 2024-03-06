@@ -12,7 +12,7 @@ Intermittenty checks your installed extensions to see if the developer informati
 
 Extension developers are [constantly getting offers to buy their extensions](https://github.com/extesy/hoverzoom/discussions/670). In nearly every case, the people buying these extensions want to rip off the existing users.
 
-**The users of these extensions have no idea the extension they have installed is compromised.**
+**The users of these extensions have no idea an installed extension has changed hands, and may now be compromised.**
 
 Under New Management gives users notice of the change of ownership, giving them a chance to make an informed decision about the software they're using.
 
