@@ -10,6 +10,8 @@ Created by [Matt Frisbie](https://www.mattfriz.com/)
 
 [Hacker News discussion](https://news.ycombinator.com/item?id=39620060)
 
+[UNM in the tl;dr sec Newsletter](https://tldrsec.com/p/tldr-sec-221)
+
 ![image](unm-screenshot-1280x800.png)
 
 ## Why is this needed?
