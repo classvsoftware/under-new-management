@@ -8,9 +8,11 @@ Intermittenty checks your installed extensions to see if the developer informati
 
 Created by [Matt Frisbie](https://www.mattfriz.com/)
 
-[Hacker News discussion](https://news.ycombinator.com/item?id=39620060)
+Media:
 
-[UNM in the tl;dr sec Newsletter](https://tldrsec.com/p/tldr-sec-221)
+- [Hacker News discussion](https://news.ycombinator.com/item?id=39620060)
+- [Featured in *tl;dr sec Newsletter*](https://tldrsec.com/p/tldr-sec-221)
+- [Featured in *The Register*](https://www.theregister.com/2024/03/07/chrome_extension_changes/)
 
 ![image](unm-screenshot-1280x800.png)
 
