@@ -22,7 +22,7 @@ Under New Management gives users notice of the change of ownership, giving them 
 
 ## Installation
 
-Install here: (pending Chrome Web Store approval)
+Install here: [https://chromewebstore.google.com/detail/under-new-management/jppepdecgemgbgnjnnfjcmanlleioikj](https://chromewebstore.google.com/detail/under-new-management/jppepdecgemgbgnjnnfjcmanlleioikj?hl=en&authuser=0)
 
 OR
 
