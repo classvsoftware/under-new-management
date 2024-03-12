@@ -1,47 +1,37 @@
 {
   "name": "under-new-management",
+  "displayName": "Under new management",
   "version": "0.0.1",
-  "description": "Early warning system for acquired extensions",
+  "description": "Detect when your installed Chrome extensions have changed owners.",
+  "author": "matt@classvsoftware.com",
   "scripts": {
-    "start": "parcel watch src/manifest.json --host localhost --config @parcel/config-webextension",
-    "build": "parcel build src/manifest.json --config @parcel/config-webextension"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/msfrisbie/under-new-management.git"
-  },
-  "author": "msfrisbie@gmail.com",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/msfrisbie/under-new-management/issues"
-  },
-  "homepage": "https://github.com/msfrisbie/under-new-management#readme",
-  "devDependencies": {
-    "@parcel/config-webextension": "^2.12.0",
-    "assert": "^2.0.0",
-    "browserify-zlib": "^0.2.0",
-    "buffer": "^5.5.0||^6.0.0",
-    "crypto-browserify": "^3.12.0",
-    "events": "^3.1.0",
-    "https-browserify": "^1.0.0",
-    "os-browserify": "^0.3.0",
-    "parcel": "^2.12.0",
-    "path-browserify": "^1.0.0",
-    "postcss": "^8.4.35",
-    "process": "^0.11.10",
-    "punycode": "^1.4.1",
-    "stream-browserify": "^3.0.0",
-    "stream-http": "^3.1.0",
-    "string_decoder": "^1.3.0",
-    "tailwindcss": "^3.4.1",
-    "url": "^0.11.0",
-    "util": "^0.12.3",
-    "vm-browserify": "^1.1.2"
+    "dev": "plasmo dev",
+    "build": "plasmo build",
+    "package": "plasmo package"
   },
   "dependencies": {
-    "@types/chrome": "^0.0.262",
     "lodash-es": "^4.17.21",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "plasmo": "0.85.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "4.1.1",
+    "@types/chrome": "0.0.258",
+    "@types/node": "20.11.5",
+    "@types/react": "18.2.48",
+    "@types/react-dom": "18.2.18",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "prettier": "3.2.4",
+    "tailwindcss": "^3.4.1",
+    "typescript": "5.3.3"
+  },
+  "manifest": {
+    "permissions": [
+      "alarms",
+      "management",
+      "storage"
+    ]
   }
 }

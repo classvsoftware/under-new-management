@@ -1,4 +1,4 @@
-![Under New Management](src/logo128.png)
+![Under New Management](assets/icon.png)
 
 # Under New Management
 
@@ -34,13 +34,13 @@ Download a [prebuilt release](https://github.com/classvsoftware/under-new-manage
 
 ## Building from source
 
-**Under New Management** uses Parcel, React, Typescript, and TailwindCSS
+**Under New Management** uses Plasmo
 
-`yarn install` to install dependencies
+`pnpm install` to install dependencies
 
-`yarn start` to run locally
+`pnpm dev` to run locally
 
-`yarn build` to build a release
+`pnpm build` to build a release
 
 ## Why does this need an external server?
 

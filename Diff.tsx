@@ -1,4 +1,4 @@
-import React from "react";
+import React from "react"
 
 const Diff = ({ obj1, obj2 }) => {
   // Function to compare objects and find differences
@@ -6,32 +6,32 @@ const Diff = ({ obj1, obj2 }) => {
     let diff = {
       added: {},
       removed: {},
-      unchanged: {},
-    };
+      unchanged: {}
+    }
 
     Object.keys(obj1).forEach((key) => {
       if (!obj2.hasOwnProperty(key)) {
-        diff.removed[key] = obj1[key];
+        diff.removed[key] = obj1[key]
       } else if (obj1[key] === obj2[key]) {
-        diff.unchanged[key] = obj1[key];
+        diff.unchanged[key] = obj1[key]
       }
-    });
+    })
 
     Object.keys(obj2).forEach((key) => {
       if (!obj1.hasOwnProperty(key)) {
-        diff.added[key] = obj2[key];
+        diff.added[key] = obj2[key]
       } else if (obj1[key] !== obj2[key]) {
-        diff.added[key] = obj2[key];
+        diff.added[key] = obj2[key]
         if (!diff.removed.hasOwnProperty(key)) {
-          diff.removed[key] = obj1[key];
+          diff.removed[key] = obj1[key]
         }
       }
-    });
+    })
 
-    return diff;
-  };
+    return diff
+  }
 
-  const differences = findDifferences(obj1, obj2);
+  const differences = findDifferences(obj1, obj2)
 
   return (
     <div className="grid grid-cols-2 gap-8 p-8 border border-1 border-gray-200 rounded-lg">
@@ -66,7 +66,7 @@ const Diff = ({ obj1, obj2 }) => {
         </pre>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Diff;
+export default Diff
