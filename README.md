@@ -1,4 +1,4 @@
-![Under New Management](assets/icon.png)
+<img src="assets/icon.png" alt="Under New management" width="200"/>
 
 # Under New Management
 
