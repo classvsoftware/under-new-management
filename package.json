@@ -33,6 +33,11 @@
       "alarms",
       "management",
       "storage"
-    ]
+    ],
+    "browser_specific_settings": {
+      "gecko": {
+        "id": "undernewmanagement@classvsoftware.com"
+      }
+    }
   }
 }
