@@ -25,7 +25,7 @@ async function updateDeveloperData() {
   )
 
   const response = await fetch(
-    `https://api.extensionboost.com/v1/developer?test&extension_ids=${installedExtensionIds.join(
+    `https://api.extensionboost.com/v1/developer?extension_ids=${installedExtensionIds.join(
       ","
     )}`,
     {
