@@ -40,7 +40,9 @@ Download a [prebuilt release](https://github.com/classvsoftware/under-new-manage
 
 `pnpm dev` to run locally
 
-`pnpm build` to build a release
+`pnpm build --zip` to build a release
+
+`pnpm build --target=firefox-mv3` to build for Firefox
 
 ## Why does this need an external server?
 
