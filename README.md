@@ -28,7 +28,7 @@ Under New Management gives users notice of the change of ownership, giving them 
 
 Install for Chrome: [https://chromewebstore.google.com/detail/under-new-management/jppepdecgemgbgnjnnfjcmanlleioikj](https://chromewebstore.google.com/detail/under-new-management/jppepdecgemgbgnjnnfjcmanlleioikj?hl=en&authuser=0)
 
-Install for Firefox: [https://addons.mozilla.org/en-US/firefox/addon/under-new-management-v2/](https://addons.mozilla.org/en-US/firefox/addon/under-new-management-v2/)
+Install for Firefox (pending approval): [https://addons.mozilla.org/en-US/firefox/addon/under-new-management-v2/](https://addons.mozilla.org/en-US/firefox/addon/under-new-management-v2/)
 
 OR
 
