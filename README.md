@@ -13,6 +13,7 @@ Media:
 - [Hacker News discussion](https://news.ycombinator.com/item?id=39620060)
 - [Featured in *tl;dr sec Newsletter*](https://tldrsec.com/p/tldr-sec-221)
 - [Featured in *The Register*](https://www.theregister.com/2024/03/07/chrome_extension_changes/)
+  [Featured on Security Now ep 965](https://youtu.be/HB8im8TuN1w?t=6613)
 
 ![image](unm-screenshot-1280x800.png)
 
