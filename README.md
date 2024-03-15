@@ -4,7 +4,7 @@
 
 **Detect when your extensions have changed owners**
 
-Intermittenty checks your installed extensions to see if the developer information listed on the Chrome Web Store has changed. If anything is different, the extension icon will display a red badge, alerting you to the change.
+Intermittenty checks your installed extensions to see if the developer information listed on the Chrome Web Store or Firefox Addons store has changed. If anything is different, the extension icon will display a red badge, alerting you to the change.
 
 Created by [Matt Frisbie](https://www.mattfriz.com/)
 
@@ -33,7 +33,7 @@ Install for Firefox: [https://addons.mozilla.org/en-US/firefox/addon/under-new-m
 
 OR
 
-Download a [prebuilt release](https://github.com/classvsoftware/under-new-management/releases), unpack the .zip file, and load the `dist` directory into Chrome.
+Download a [prebuilt release](https://github.com/classvsoftware/under-new-management/releases), unpack the .zip file, and load the `dist` directory into your browser.
 
 ## Building from source
 
