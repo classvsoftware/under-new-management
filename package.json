@@ -1,7 +1,7 @@
 {
   "name": "under-new-management",
   "displayName": "Under New Management",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Detect when your installed Chrome extensions have changed owners.",
   "author": "matt@classvsoftware.com",
   "homepage": "https://classvsoftware.com",
