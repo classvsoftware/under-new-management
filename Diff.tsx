@@ -37,7 +37,7 @@ const Diff = ({ obj1, obj2 }) => {
     <div className="grid grid-cols-2 gap-8 p-8 border border-1 border-gray-200 rounded-lg">
       <div>
         <h2 className="text-lg font-bold">Before</h2>
-        <pre>
+        <pre className="text-wrap">
           {Object.keys(differences.removed).map((key) => (
             <div key={key} className="text-red-500">
               {key}: {differences.removed[key] ?? "null"}
@@ -52,7 +52,7 @@ const Diff = ({ obj1, obj2 }) => {
       </div>
       <div>
         <h2 className="text-lg font-bold">After</h2>
-        <pre>
+        <pre className="text-wrap">
           {Object.keys(differences.added).map((key) => (
             <div key={key} className="text-green-500">
               {key}: {differences.added[key] ?? "null"}
