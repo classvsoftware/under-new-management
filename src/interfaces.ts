@@ -47,4 +47,5 @@ export interface IExtensionRowData {
   installType: string;
   checkResult: IExtensionCheckResult | null;
   changelogEntries: IChangelogEntry[];
+  storedData: StoredExtensionData | null;
 }

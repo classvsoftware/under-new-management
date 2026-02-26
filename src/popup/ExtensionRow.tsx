@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { IExtensionRowData, IChangelogEntry } from "../interfaces";
 import { NON_RETRYABLE_ERRORS } from "../consts";
 import Diff from "./Diff";
@@ -94,6 +94,7 @@ const ExtensionRow: React.FC<ExtensionRowProps> = ({
   onDismiss,
   onRetry,
 }) => {
+  const [showStoredData, setShowStoredData] = useState(false);
   const iconUrl = getBestIcon(row.icons);
   const isStoreExtension = row.installType === "normal";
   const status = row.checkResult?.status ?? null;
@@ -175,6 +176,25 @@ const ExtensionRow: React.FC<ExtensionRowProps> = ({
           </div>
         );
       })()}
+
+      {!hasEntry && isStoreExtension && row.storedData && (
+        <div>
+          <button
+            className="text-xs text-blue-600 hover:text-blue-800 underline"
+            onClick={() => setShowStoredData(!showStoredData)}
+          >
+            {showStoredData ? "Hide details" : "Show details"}
+          </button>
+          {showStoredData && (
+            <div className="mt-1">
+              <Diff
+                obj1={flattenEntry(row.storedData)}
+                obj2={flattenEntry(row.storedData)}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {hasChanges && (
         <button

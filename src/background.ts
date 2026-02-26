@@ -273,6 +273,13 @@ async function doUpdateDeveloperData() {
   await chrome.storage.local.set({ [CHECK_IN_PROGRESS_KEY]: false });
 }
 
+function hasFieldChanges(a: StoredExtensionData, b: StoredExtensionData): boolean {
+  const flatA: Record<string, any> = { extensionId: a.extensionId, extensionName: a.extensionName, ...a.developerData };
+  const flatB: Record<string, any> = { extensionId: b.extensionId, extensionName: b.extensionName, ...b.developerData };
+  const allKeys = new Set([...Object.keys(flatA), ...Object.keys(flatB)]);
+  return Array.from(allKeys).some((key) => (flatA[key] ?? null) !== (flatB[key] ?? null));
+}
+
 function generateNewChangelogEntries(
   previousState: StoredExtensionsState,
   currentState: StoredExtensionsState,
@@ -288,7 +295,7 @@ function generateNewChangelogEntries(
   for (const previous of previousState.extensions) {
     const current = currentMap.get(previous.extensionId);
 
-    if (current && JSON.stringify(previous) !== JSON.stringify(current)) {
+    if (current && hasFieldChanges(previous, current)) {
       newEntries.push({
         timestamp,
         beforeTimestamp: lastCheckTimestamp,

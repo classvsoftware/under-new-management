@@ -4,6 +4,7 @@ import {
   CHECK_IN_PROGRESS_KEY,
   CHECK_PROGRESS_KEY,
   LAST_CHECK_KEY,
+  PREVIOUS_EXTENSIONS_STATE_KEY,
   RETRY_EXTENSION_ACTION,
   TRIGGER_CHECK_ACTION,
 } from "../consts";
@@ -12,6 +13,8 @@ import {
   IExtensionCheckResult,
   IExtensionRowData,
   ILastUpdatedData,
+  StoredExtensionData,
+  StoredExtensionsState,
 } from "../interfaces";
 import logo from "../logo.png";
 import ExtensionRow from "./ExtensionRow";
@@ -34,9 +37,13 @@ function timeAgo(timestamp: string): string {
 function buildExtensionRows(
   extensions: chrome.management.ExtensionInfo[],
   checkResults: IExtensionCheckResult[],
-  changelog: IChangelogEntry[]
+  changelog: IChangelogEntry[],
+  storedState: StoredExtensionsState
 ): IExtensionRowData[] {
   const checkMap = new Map(checkResults.map((r) => [r.extensionId, r]));
+  const storedMap = new Map(
+    storedState.extensions.map((e) => [e.extensionId, e])
+  );
 
   const changelogMap = new Map<string, IChangelogEntry[]>();
   for (const entry of changelog) {
@@ -54,6 +61,7 @@ function buildExtensionRows(
       installType: ext.installType,
       checkResult: checkMap.get(ext.id) ?? null,
       changelogEntries: changelogMap.get(ext.id) ?? [],
+      storedData: storedMap.get(ext.id) ?? null,
     }))
     .sort((a, b) => a.extensionName.localeCompare(b.extensionName));
 }
@@ -69,6 +77,10 @@ const Popup = () => {
   const [lastUpdatedData, setLastUpdatedData] =
     useState<ILastUpdatedData | null>(null);
   const [checkInProgress, setCheckInProgress] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [storedState, setStoredState] = useState<StoredExtensionsState>({
+    extensions: [],
+  });
 
   useEffect(() => {
     chrome.management.getAll().then(setInstalledExtensions);
@@ -89,6 +101,11 @@ const Popup = () => {
       if (LAST_CHECK_KEY in changes) {
         setLastUpdatedData(changes[LAST_CHECK_KEY].newValue ?? null);
       }
+      if (PREVIOUS_EXTENSIONS_STATE_KEY in changes) {
+        setStoredState(
+          changes[PREVIOUS_EXTENSIONS_STATE_KEY].newValue ?? { extensions: [] }
+        );
+      }
     }
 
     chrome.storage.local.onChanged.addListener(handleStorageChange);
@@ -102,11 +119,15 @@ const Popup = () => {
       CHECK_PROGRESS_KEY,
       CHECK_IN_PROGRESS_KEY,
       LAST_CHECK_KEY,
+      PREVIOUS_EXTENSIONS_STATE_KEY,
     ]);
     setChangelogData(result[CHANGELOG_KEY] ?? []);
     setCheckProgress(result[CHECK_PROGRESS_KEY] ?? []);
     setCheckInProgress(result[CHECK_IN_PROGRESS_KEY] ?? false);
     setLastUpdatedData(result[LAST_CHECK_KEY] ?? null);
+    setStoredState(
+      result[PREVIOUS_EXTENSIONS_STATE_KEY] ?? { extensions: [] }
+    );
   }
 
   // Clean up orphaned changelog entries for uninstalled extensions
@@ -130,8 +151,14 @@ const Popup = () => {
   }, [installedExtensions, changelogData]);
 
   const allRows = useMemo(
-    () => buildExtensionRows(installedExtensions, checkProgress, changelogData),
-    [installedExtensions, checkProgress, changelogData]
+    () =>
+      buildExtensionRows(
+        installedExtensions,
+        checkProgress,
+        changelogData,
+        storedState
+      ),
+    [installedExtensions, checkProgress, changelogData, storedState]
   );
 
   const storeRows = useMemo(
@@ -242,6 +269,39 @@ const Popup = () => {
               onRetry={() => retryExtension(row.extensionId)}
             />
           ))}
+        </div>
+      )}
+
+      <div className="text-center text-xs text-gray-300 mt-2">
+        <span
+          className="cursor-default select-none"
+          onClick={() => setShowDebug(!showDebug)}
+        >
+          v{chrome.runtime.getManifest().version}
+        </span>
+      </div>
+
+      {showDebug && (
+        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 text-xs text-gray-500 flex flex-col gap-2">
+          <h3 className="font-medium text-gray-600">Debug</h3>
+          <div className="flex flex-row gap-2">
+            <button
+              className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+              onClick={async () => {
+                await chrome.storage.local.clear();
+                chrome.action.setBadgeText({ text: "" });
+                loadStorageData();
+              }}
+            >
+              Clear Storage
+            </button>
+            <button
+              className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+              onClick={() => triggerCheck()}
+            >
+              Run Full Check
+            </button>
+          </div>
         </div>
       )}
     </div>
