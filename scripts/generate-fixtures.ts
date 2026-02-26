@@ -1,0 +1,3 @@
+cws ublock-origin-lite ddkjiahejlhfcafbddmgiahcphecmpfh
+cws chatgpt-search ejcfepkfckglbgocfkanmcdngdijcgld
+cws bitwarden nngceckbapebfimnlniiiahkandclblb

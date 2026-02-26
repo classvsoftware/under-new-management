@@ -1,10 +1,13 @@
 {
   "name": "under-new-management",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Early warning system for acquired extensions",
   "scripts": {
     "start": "parcel watch src/manifest.json --host localhost --config @parcel/config-webextension",
-    "build": "parcel build src/manifest.json --config @parcel/config-webextension"
+    "build": "parcel build src/manifest.json --config @parcel/config-webextension",
+    "generate-fixtures": "node scripts/generate-fixtures.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "repository": {
     "type": "git",
@@ -24,6 +27,7 @@
     "crypto-browserify": "^3.12.0",
     "events": "^3.1.0",
     "https-browserify": "^1.0.0",
+    "jsdom": "^28.1.0",
     "os-browserify": "^0.3.0",
     "parcel": "^2.12.0",
     "path-browserify": "^1.0.0",
@@ -36,6 +40,7 @@
     "tailwindcss": "^3.4.1",
     "url": "^0.11.0",
     "util": "^0.12.3",
+    "vitest": "^4.0.18",
     "vm-browserify": "^1.1.2"
   },
   "dependencies": {
@@ -43,5 +48,6 @@
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

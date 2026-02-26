@@ -1,24 +1,39 @@
-export interface IExtensionDeveloperInformation {
-  extension_id: string;
-  extension_name: string;
-  developer_name: string | null;
-  developer_website: string | null;
-  developer_email: string | null;
-  offered_by_name: string | null;
+import { ExtensionDeveloperData } from "./metadata/interfaces";
+
+export interface StoredExtensionData {
+  extensionId: string;
+  extensionName: string;
+  developerData: ExtensionDeveloperData;
 }
 
-export interface IApiResponse {
-  ignored_extension_ids: string[];
-  matched_extension_data: IExtensionDeveloperInformation[];
-  unmatched_extension_ids: string[];
+export interface StoredExtensionsState {
+  extensions: StoredExtensionData[];
 }
 
 export interface IChangelogEntry {
   timestamp: string;
-  before: IExtensionDeveloperInformation;
-  after: IExtensionDeveloperInformation;
+  before: StoredExtensionData;
+  after: StoredExtensionData;
 }
 
 export interface ILastUpdatedData {
   timestamp: string;
+}
+
+export interface IFetchError {
+  extensionId: string;
+  extensionName: string;
+  error: string;
+  timestamp: string;
+}
+
+export type CheckStatus = "pending" | "checking" | "success" | "error";
+
+export interface IExtensionCheckResult {
+  extensionId: string;
+  extensionName: string;
+  status: CheckStatus;
+  developerName: string | null;
+  error: string | null;
+  timestamp: string | null;
 }

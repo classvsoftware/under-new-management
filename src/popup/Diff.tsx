@@ -1,6 +1,6 @@
 import React from "react";
 
-const Diff = ({ obj1, obj2 }) => {
+const Diff: React.FC<{ obj1: Record<string, any>; obj2: Record<string, any> }> = ({ obj1, obj2 }) => {
   // Function to compare objects and find differences
   const findDifferences = (obj1, obj2) => {
     let diff = {
