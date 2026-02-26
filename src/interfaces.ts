@@ -37,3 +37,12 @@ export interface IExtensionCheckResult {
   error: string | null;
   timestamp: string | null;
 }
+
+export interface IExtensionRowData {
+  extensionId: string;
+  extensionName: string;
+  icons: chrome.management.IconInfo[] | undefined;
+  installType: string;
+  checkResult: IExtensionCheckResult | null;
+  changelogEntries: IChangelogEntry[];
+}

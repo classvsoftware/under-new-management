@@ -116,7 +116,11 @@ async function updateDeveloperData() {
   // Set in-progress flag
   await chrome.storage.local.set({ [CHECK_IN_PROGRESS_KEY]: true });
 
-  const installedExtensions = await chrome.management.getAll();
+  const allExtensions = await chrome.management.getAll();
+  // Only check extensions installed from the Chrome Web Store
+  const installedExtensions = allExtensions.filter(
+    (ext) => ext.installType === "normal"
+  );
 
   // Initialize progress with all extensions as pending
   const progress: IExtensionCheckResult[] = installedExtensions.map((ext) => ({
@@ -194,10 +198,26 @@ async function updateDeveloperData() {
     currentState
   );
 
-  const updatedChangelogData: IChangelogEntry[] = [
-    ...newChangelogEntries,
-    ...changelogData,
-  ];
+  // Merge: one entry per extension, keeping the original "before"
+  const changelogMap = new Map(
+    changelogData.map((e) => [e.after.extensionId, e])
+  );
+  for (const entry of newChangelogEntries) {
+    const existing = changelogMap.get(entry.after.extensionId);
+    if (existing) {
+      // Preserve the original "before", update "after" and timestamp
+      changelogMap.set(entry.after.extensionId, {
+        timestamp: entry.timestamp,
+        before: existing.before,
+        after: entry.after,
+      });
+    } else {
+      changelogMap.set(entry.after.extensionId, entry);
+    }
+  }
+  const updatedChangelogData: IChangelogEntry[] = Array.from(
+    changelogMap.values()
+  );
 
   let badgeText = "";
   if (updatedChangelogData.length > 0) {

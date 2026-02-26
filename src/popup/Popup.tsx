@@ -1,116 +1,139 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   CHANGELOG_KEY,
   CHECK_IN_PROGRESS_KEY,
   CHECK_PROGRESS_KEY,
   FETCH_ERRORS_KEY,
   LAST_CHECK_KEY,
-  NON_RETRYABLE_ERRORS,
+  PREVIOUS_EXTENSIONS_STATE_KEY,
   RETRY_EXTENSION_ACTION,
   TRIGGER_CHECK_ACTION,
 } from "../consts";
 import {
   IChangelogEntry,
   IExtensionCheckResult,
-  IFetchError,
+  IExtensionRowData,
   ILastUpdatedData,
 } from "../interfaces";
 import logo from "../logo.png";
-import Diff from "./Diff";
+import ExtensionRow from "./ExtensionRow";
+import TutorialCard from "./TutorialCard";
 import "./popup.css";
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
-function flattenEntry(entry: IChangelogEntry["before" | "after"]) {
-  return {
-    extensionId: entry.extensionId,
-    extensionName: entry.extensionName,
-    ...entry.developerData,
-  };
-}
+function buildExtensionRows(
+  extensions: chrome.management.ExtensionInfo[],
+  checkResults: IExtensionCheckResult[],
+  changelog: IChangelogEntry[]
+): IExtensionRowData[] {
+  const checkMap = new Map(checkResults.map((r) => [r.extensionId, r]));
 
-function statusIcon(status: IExtensionCheckResult["status"]) {
-  switch (status) {
-    case "pending":
-      return "○";
-    case "checking":
-      return "◌";
-    case "success":
-      return "✓";
-    case "error":
-      return "✗";
+  const changelogMap = new Map<string, IChangelogEntry[]>();
+  for (const entry of changelog) {
+    const id = entry.after.extensionId;
+    if (!changelogMap.has(id)) changelogMap.set(id, []);
+    changelogMap.get(id)!.push(entry);
   }
-}
 
-function statusColor(status: IExtensionCheckResult["status"]) {
-  switch (status) {
-    case "pending":
-      return "text-gray-400";
-    case "checking":
-      return "text-blue-500";
-    case "success":
-      return "text-green-600";
-    case "error":
-      return "text-red-500";
-  }
+  return extensions
+    .filter((ext) => ext.id !== chrome.runtime.id)
+    .map((ext) => ({
+      extensionId: ext.id,
+      extensionName: ext.name,
+      icons: ext.icons,
+      installType: ext.installType,
+      checkResult: checkMap.get(ext.id) ?? null,
+      changelogEntries: changelogMap.get(ext.id) ?? [],
+    }))
+    .sort((a, b) => a.extensionName.localeCompare(b.extensionName));
 }
 
 const Popup = () => {
-  const [changelogData, setChangelogData] = useState<IChangelogEntry[] | null>(
-    null
-  );
-  const [lastUpdatedData, setLastUpdatedData] =
-    useState<ILastUpdatedData | null>(null);
-  const [fetchErrors, setFetchErrors] = useState<IFetchError[]>([]);
-  const [checkInProgress, setCheckInProgress] = useState(false);
+  const [installedExtensions, setInstalledExtensions] = useState<
+    chrome.management.ExtensionInfo[]
+  >([]);
   const [checkProgress, setCheckProgress] = useState<IExtensionCheckResult[]>(
     []
   );
-
+  const [changelogData, setChangelogData] = useState<IChangelogEntry[]>([]);
+  const [lastUpdatedData, setLastUpdatedData] =
+    useState<ILastUpdatedData | null>(null);
+  const [checkInProgress, setCheckInProgress] = useState(false);
 
   useEffect(() => {
-    updateData();
+    chrome.management.getAll().then(setInstalledExtensions);
+    loadStorageData();
 
-    chrome.storage.local.onChanged.addListener(updateData);
-    return () => chrome.storage.local.onChanged.removeListener(updateData);
+    function handleStorageChange(changes: {
+      [key: string]: chrome.storage.StorageChange;
+    }) {
+      if (CHANGELOG_KEY in changes) {
+        setChangelogData(changes[CHANGELOG_KEY].newValue ?? []);
+      }
+      if (CHECK_PROGRESS_KEY in changes) {
+        setCheckProgress(changes[CHECK_PROGRESS_KEY].newValue ?? []);
+      }
+      if (CHECK_IN_PROGRESS_KEY in changes) {
+        setCheckInProgress(changes[CHECK_IN_PROGRESS_KEY].newValue ?? false);
+      }
+      if (LAST_CHECK_KEY in changes) {
+        setLastUpdatedData(changes[LAST_CHECK_KEY].newValue ?? null);
+      }
+    }
+
+    chrome.storage.local.onChanged.addListener(handleStorageChange);
+    return () =>
+      chrome.storage.local.onChanged.removeListener(handleStorageChange);
   }, []);
 
-  async function updateData() {
-    updateChangelogData();
-
-    const lastUpdated: ILastUpdatedData | null =
-      (await chrome.storage.local.get(LAST_CHECK_KEY))[LAST_CHECK_KEY] ?? null;
-    setLastUpdatedData(lastUpdated);
-
-    const errors: IFetchError[] =
-      (await chrome.storage.local.get(FETCH_ERRORS_KEY))[FETCH_ERRORS_KEY] ??
-      [];
-    setFetchErrors(errors);
-
-    const inProgress: boolean =
-      (await chrome.storage.local.get(CHECK_IN_PROGRESS_KEY))[
-        CHECK_IN_PROGRESS_KEY
-      ] ?? false;
-    setCheckInProgress(inProgress);
-
-    const progress: IExtensionCheckResult[] =
-      (await chrome.storage.local.get(CHECK_PROGRESS_KEY))[
-        CHECK_PROGRESS_KEY
-      ] ?? [];
-    setCheckProgress(progress);
+  async function loadStorageData() {
+    const result = await chrome.storage.local.get([
+      CHANGELOG_KEY,
+      CHECK_PROGRESS_KEY,
+      CHECK_IN_PROGRESS_KEY,
+      LAST_CHECK_KEY,
+    ]);
+    setChangelogData(result[CHANGELOG_KEY] ?? []);
+    setCheckProgress(result[CHECK_PROGRESS_KEY] ?? []);
+    setCheckInProgress(result[CHECK_IN_PROGRESS_KEY] ?? false);
+    setLastUpdatedData(result[LAST_CHECK_KEY] ?? null);
   }
 
-  async function updateChangelogData() {
-    const changelogResult: IChangelogEntry[] =
-      (await chrome.storage.local.get(CHANGELOG_KEY))[CHANGELOG_KEY] ?? [];
-    setChangelogData(changelogResult);
-  }
+  // Clean up orphaned changelog entries for uninstalled extensions
+  useEffect(() => {
+    if (installedExtensions.length === 0 || changelogData.length === 0) return;
 
-  async function clearChangelog() {
-    await chrome.storage.local.set({ [CHANGELOG_KEY]: [] });
-    await updateChangelogData();
-    chrome.action.setBadgeText({ text: "" });
-  }
+    const installedIds = new Set(installedExtensions.map((e: chrome.management.ExtensionInfo) => e.id));
+    const hasOrphans = changelogData.some(
+      (e: IChangelogEntry) => !installedIds.has(e.after.extensionId)
+    );
+
+    if (hasOrphans) {
+      const cleaned = changelogData.filter((e: IChangelogEntry) =>
+        installedIds.has(e.after.extensionId)
+      );
+      chrome.storage.local.set({ [CHANGELOG_KEY]: cleaned });
+      chrome.action.setBadgeText({
+        text: cleaned.length > 0 ? cleaned.length.toString() : "",
+      });
+    }
+  }, [installedExtensions, changelogData]);
+
+  const allRows = useMemo(
+    () => buildExtensionRows(installedExtensions, checkProgress, changelogData),
+    [installedExtensions, checkProgress, changelogData]
+  );
+
+  const storeRows = useMemo(
+    () => allRows.filter((r: IExtensionRowData) => r.installType === "normal"),
+    [allRows]
+  );
+
+  const nonStoreRows = useMemo(
+    () => allRows.filter((r: IExtensionRowData) => r.installType !== "normal"),
+    [allRows]
+  );
 
   function triggerCheck() {
     chrome.runtime.sendMessage({ action: TRIGGER_CHECK_ACTION });
@@ -123,151 +146,118 @@ const Popup = () => {
     });
   }
 
-  function isRetryable(error: string | null): boolean {
-    if (!error) return false;
-    return !NON_RETRYABLE_ERRORS.some((msg) => error.includes(msg));
+  async function dismissExtension(extensionId: string) {
+    const current: IChangelogEntry[] =
+      (await chrome.storage.local.get(CHANGELOG_KEY))[CHANGELOG_KEY] ?? [];
+    const updated = current.filter(
+      (entry: IChangelogEntry) => entry.after.extensionId !== extensionId
+    );
+    await chrome.storage.local.set({ [CHANGELOG_KEY]: updated });
+    chrome.action.setBadgeText({
+      text: updated.length > 0 ? updated.length.toString() : "",
+    });
+  }
+
+  async function resetAndRecheck() {
+    await chrome.storage.local.remove([
+      PREVIOUS_EXTENSIONS_STATE_KEY,
+      CHANGELOG_KEY,
+      LAST_CHECK_KEY,
+      FETCH_ERRORS_KEY,
+      CHECK_PROGRESS_KEY,
+      CHECK_IN_PROGRESS_KEY,
+    ]);
+    chrome.action.setBadgeText({ text: "" });
+    chrome.runtime.sendMessage({ action: TRIGGER_CHECK_ACTION });
   }
 
   const isStale =
     !lastUpdatedData ||
     Date.now() - new Date(lastUpdatedData.timestamp).getTime() > ONE_HOUR_MS;
-
   const showCheckButton = isStale && !checkInProgress;
 
   const completedCount = checkProgress.filter(
-    (r) => r.status === "success" || r.status === "error"
+    (r: IExtensionCheckResult) => r.status === "success" || r.status === "error"
   ).length;
   const totalCount = checkProgress.length;
 
   return (
-    <div className="m-8 font-light flex flex-col items-stretch gap-8">
-      <div className="flex flex-row gap-8 items-start">
-        <img className="w-14 rounded-xl overflow-hidden" src={logo}></img>
+    <div className="m-8 font-light flex flex-col items-stretch gap-6">
+      <div className="flex flex-row gap-4 items-center">
+        <img className="w-12 rounded-xl overflow-hidden" src={logo} alt="" />
         <div className="flex flex-col flex-grow">
-          <h1 className="text-blue-700 text-2xl">
-            Extension Developer Changelog
+          <h1 className="text-blue-700 text-xl font-normal">
+            Under New Management
           </h1>
-          <div className="flex flex-row justify-between items-center">
-            <span>
-              Last updated:{" "}
-              {lastUpdatedData
-                ? `${new Date(
-                    lastUpdatedData.timestamp
-                  ).toLocaleDateString()} ${new Date(
-                    lastUpdatedData.timestamp
-                  ).toLocaleTimeString()}`
-                : "Never"}
-            </span>
-          </div>
+          <span className="text-xs text-gray-500">
+            Last updated:{" "}
+            {lastUpdatedData
+              ? `${new Date(
+                  lastUpdatedData.timestamp
+                ).toLocaleDateString()} ${new Date(
+                  lastUpdatedData.timestamp
+                ).toLocaleTimeString()}`
+              : "Never"}
+          </span>
         </div>
 
         <div className="flex flex-col gap-2 items-end">
-          <button
-            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded border border-red-700"
-            onClick={() => clearChangelog()}
-          >
-            CLEAR
-          </button>
           {showCheckButton && (
             <button
-              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded border border-blue-700"
-              onClick={() => triggerCheck()}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded border border-blue-700 text-sm"
+              onClick={triggerCheck}
             >
               Check Now
             </button>
           )}
           {checkInProgress && (
             <button
-              class="bg-gray-400 text-white font-bold py-2 px-4 rounded border border-gray-500 cursor-not-allowed"
+              className="bg-gray-400 text-white font-bold py-2 px-4 rounded border border-gray-500 cursor-not-allowed text-sm"
               disabled
             >
               Checking... ({completedCount}/{totalCount})
             </button>
           )}
+          {!checkInProgress && (
+            <button
+              className="text-xs text-gray-400 hover:text-red-600 underline"
+              onClick={resetAndRecheck}
+            >
+              Reset &amp; Recheck
+            </button>
+          )}
         </div>
       </div>
 
-      {changelogData && changelogData.length > 0 ? (
-        changelogData.map((entry: IChangelogEntry, i: number) => (
-          <Diff
-            key={i}
-            obj1={flattenEntry(entry.before)}
-            obj2={flattenEntry(entry.after)}
-          ></Diff>
-        ))
-      ) : (
-        <span>No changes detected.</span>
-      )}
+      <TutorialCard />
 
-      {fetchErrors.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-bold text-orange-600">Fetch Errors</h2>
-          {fetchErrors.map((err: IFetchError, i: number) => (
-            <div
-              key={i}
-              className="p-4 border border-orange-300 rounded bg-orange-50 text-sm"
-            >
-              <span className="font-bold">{err.extensionName}</span>
-              <span className="text-gray-500 ml-2">({err.extensionId})</span>
-              <div className="text-red-600 mt-1">{err.error}</div>
-            </div>
+      {storeRows.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm text-gray-500 font-medium">Chrome Web Store Extensions</h2>
+          {storeRows.map((row: IExtensionRowData) => (
+            <ExtensionRow
+              key={row.extensionId}
+              row={row}
+              onDismiss={() => dismissExtension(row.extensionId)}
+              onRetry={() => retryExtension(row.extensionId)}
+            />
           ))}
         </div>
+      ) : (
+        <span className="text-gray-500">No extensions installed.</span>
       )}
 
-      {checkProgress.length > 0 && (
-        <div className="border border-gray-200 rounded-lg">
-          <div className="px-4 py-3">
-            <span className="font-bold text-sm text-gray-700">
-              Extension Check Status ({completedCount}/{totalCount})
-            </span>
-          </div>
-          <div className="border-t border-gray-200">
-            {checkProgress.map(
-              (result: IExtensionCheckResult, i: number) => (
-                <div
-                  key={i}
-                  className="px-4 py-2 flex flex-row items-start gap-3 text-sm border-b border-gray-100 last:border-b-0"
-                >
-                  <span className={`font-mono ${statusColor(result.status)}`}>
-                    {statusIcon(result.status)}
-                  </span>
-                  <div className="flex flex-col flex-grow min-w-0">
-                    <span className="font-medium truncate">
-                      {result.extensionName}
-                    </span>
-                    {result.status === "success" && result.developerName && (
-                      <span className="text-gray-500 text-xs">
-                        Developer: {result.developerName}
-                      </span>
-                    )}
-                    {result.status === "error" && result.error && (
-                      <div className="flex flex-row items-center gap-2">
-                        <span className="text-red-500 text-xs truncate">
-                          {result.error}
-                        </span>
-                        {isRetryable(result.error) && (
-                          <button
-                            class="text-xs text-blue-600 hover:text-blue-800 underline whitespace-nowrap"
-                            onClick={() =>
-                              retryExtension(result.extensionId)
-                            }
-                          >
-                            Retry
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    {result.timestamp && (
-                      <span className="text-gray-400 text-xs">
-                        {new Date(result.timestamp).toLocaleTimeString()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )
-            )}
-          </div>
+      {nonStoreRows.length > 0 && (
+        <div className="flex flex-col gap-3">
+          <h2 className="text-sm text-gray-400 font-medium">Not from Chrome Web Store (not checked)</h2>
+          {nonStoreRows.map((row: IExtensionRowData) => (
+            <ExtensionRow
+              key={row.extensionId}
+              row={row}
+              onDismiss={() => dismissExtension(row.extensionId)}
+              onRetry={() => retryExtension(row.extensionId)}
+            />
+          ))}
         </div>
       )}
     </div>

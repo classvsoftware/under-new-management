@@ -1,71 +1,37 @@
 import React from "react";
 
 const Diff: React.FC<{ obj1: Record<string, any>; obj2: Record<string, any> }> = ({ obj1, obj2 }) => {
-  // Function to compare objects and find differences
-  const findDifferences = (obj1, obj2) => {
-    let diff = {
-      added: {},
-      removed: {},
-      unchanged: {},
-    };
-
-    Object.keys(obj1).forEach((key) => {
-      if (!obj2.hasOwnProperty(key)) {
-        diff.removed[key] = obj1[key];
-      } else if (obj1[key] === obj2[key]) {
-        diff.unchanged[key] = obj1[key];
-      }
-    });
-
-    Object.keys(obj2).forEach((key) => {
-      if (!obj1.hasOwnProperty(key)) {
-        diff.added[key] = obj2[key];
-      } else if (obj1[key] !== obj2[key]) {
-        diff.added[key] = obj2[key];
-        if (!diff.removed.hasOwnProperty(key)) {
-          diff.removed[key] = obj1[key];
-        }
-      }
-    });
-
-    return diff;
-  };
-
-  const differences = findDifferences(obj1, obj2);
+  const allKeys = Array.from(new Set([...Object.keys(obj1), ...Object.keys(obj2)]));
 
   return (
-    <div className="grid grid-cols-2 gap-8 p-8 border border-1 border-gray-200 rounded-lg">
-      <div>
-        <h2 className="text-lg font-bold">Before</h2>
-        <pre>
-          {Object.keys(differences.removed).map((key) => (
-            <div key={key} className="text-red-500">
-              {key}: {differences.removed[key] ?? "null"}
-            </div>
-          ))}
-          {Object.keys(differences.unchanged).map((key) => (
-            <div key={key} className="text-gray-500">
-              {key}: {differences.unchanged[key] ?? "null"}
-            </div>
-          ))}
-        </pre>
-      </div>
-      <div>
-        <h2 className="text-lg font-bold">After</h2>
-        <pre>
-          {Object.keys(differences.added).map((key) => (
-            <div key={key} className="text-green-500">
-              {key}: {differences.added[key] ?? "null"}
-            </div>
-          ))}
-          {Object.keys(differences.unchanged).map((key) => (
-            <div key={key} className="text-gray-500">
-              {key}: {differences.unchanged[key] ?? "null"}
-            </div>
-          ))}
-        </pre>
-      </div>
-    </div>
+    <table className="w-full text-sm border-collapse bg-gray-50 rounded-lg overflow-hidden">
+      <thead>
+        <tr className="text-left text-xs text-gray-500">
+          <th className="px-3 py-2 font-medium">Field</th>
+          <th className="px-3 py-2 font-medium">Old</th>
+          <th className="px-3 py-2 font-medium">New</th>
+        </tr>
+      </thead>
+      <tbody>
+        {allKeys.map((key) => {
+          const oldVal = obj1[key] ?? null;
+          const newVal = obj2[key] ?? null;
+          const changed = oldVal !== newVal;
+
+          return (
+            <tr key={key} className="border-t border-gray-200">
+              <td className="px-3 py-1.5 text-gray-600 font-medium">{key}</td>
+              <td className={`px-3 py-1.5 break-all${changed ? " bg-red-50 text-red-700" : " text-gray-500"}`}>
+                {String(oldVal ?? "null")}
+              </td>
+              <td className={`px-3 py-1.5 break-all${changed ? " bg-green-50 text-green-700" : " text-gray-500"}`}>
+                {String(newVal ?? "null")}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 };
 
