@@ -44,6 +44,17 @@ function statusColor(status: string | null) {
   }
 }
 
+function timeAgo(timestamp: string): string {
+  const seconds = Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 function isRetryable(error: string | null): boolean {
   if (!error) return false;
   return !NON_RETRYABLE_ERRORS.some((msg) => error.includes(msg));
@@ -86,7 +97,14 @@ const ExtensionRow: React.FC<ExtensionRowProps> = ({
   const iconUrl = getBestIcon(row.icons);
   const isStoreExtension = row.installType === "normal";
   const status = row.checkResult?.status ?? null;
-  const hasChanges = row.changelogEntries.length > 0;
+  const hasEntry = row.changelogEntries.length > 0;
+  const hasChanges = hasEntry && (() => {
+    const entry = row.changelogEntries[0];
+    const before = flattenEntry(entry.before);
+    const after = flattenEntry(entry.after);
+    const allKeys = new Set([...Object.keys(before), ...Object.keys(after)]);
+    return Array.from(allKeys).some((key) => (before[key] ?? null) !== (after[key] ?? null));
+  })();
   const hasError = status === "error";
   const errorMessage = row.checkResult?.error ?? null;
   const timestamp = row.checkResult?.timestamp ?? null;
@@ -110,8 +128,7 @@ const ExtensionRow: React.FC<ExtensionRowProps> = ({
           )}
           {isStoreExtension && timestamp && !hasError && (
             <span className="text-xs text-gray-500">
-              Checked: {new Date(timestamp).toLocaleDateString()}{" "}
-              {new Date(timestamp).toLocaleTimeString()}
+              Checked {timeAgo(timestamp)}
             </span>
           )}
           {isStoreExtension && !timestamp && !hasError && (
@@ -142,7 +159,7 @@ const ExtensionRow: React.FC<ExtensionRowProps> = ({
         </div>
       )}
 
-      {hasChanges && (() => {
+      {hasEntry && (() => {
         const entry = row.changelogEntries[0];
         return (
           <div>
@@ -152,6 +169,8 @@ const ExtensionRow: React.FC<ExtensionRowProps> = ({
             <Diff
               obj1={flattenEntry(entry.before)}
               obj2={flattenEntry(entry.after)}
+              oldTimestamp={entry.beforeTimestamp}
+              newTimestamp={entry.afterTimestamp}
             />
           </div>
         );

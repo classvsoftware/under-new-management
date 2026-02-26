@@ -1359,6 +1359,13 @@
   resolved "https://registry.yarnpkg.com/@types/har-format/-/har-format-1.2.15.tgz#f352493638c2f89d706438a19a9eb300b493b506"
   integrity sha512-RpQH4rXLuvTXKR0zqHq3go0RVXYv/YVqv4TnPH95VbwUxZdQlK1EtcMvQvMpDngHbt13Csh9Z4qT9AbkiQH5BA==
 
+"@types/react@^19.2.14":
+  version "19.2.14"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-19.2.14.tgz#39604929b5e3957e3a6fa0001dafb17c7af70bad"
+  integrity sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==
+  dependencies:
+    csstype "^3.2.2"
+
 "@vitest/expect@4.0.18":
   version "4.0.18"
   resolved "https://registry.yarnpkg.com/@vitest/expect/-/expect-4.0.18.tgz#361510d99fbf20eb814222e4afcb8539d79dc94d"
@@ -1904,6 +1911,11 @@ cssstyle@^6.0.1:
     "@csstools/css-syntax-patches-for-csstree" "^1.0.28"
     css-tree "^3.1.0"
     lru-cache "^11.2.6"
+
+csstype@^3.2.2:
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.2.3.tgz#ec48c0f3e993e50648c86da559e2610995cf989a"
+  integrity sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==
 
 data-urls@^7.0.0:
   version "7.0.0"

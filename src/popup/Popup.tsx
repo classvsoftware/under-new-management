@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CHANGELOG_KEY,
   CHECK_IN_PROGRESS_KEY,
   CHECK_PROGRESS_KEY,
-  FETCH_ERRORS_KEY,
   LAST_CHECK_KEY,
-  PREVIOUS_EXTENSIONS_STATE_KEY,
   RETRY_EXTENSION_ACTION,
   TRIGGER_CHECK_ACTION,
 } from "../consts";
@@ -21,6 +19,17 @@ import TutorialCard from "./TutorialCard";
 import "./popup.css";
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
+
+function timeAgo(timestamp: string): string {
+  const seconds = Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
 
 function buildExtensionRows(
   extensions: chrome.management.ExtensionInfo[],
@@ -158,19 +167,6 @@ const Popup = () => {
     });
   }
 
-  async function resetAndRecheck() {
-    await chrome.storage.local.remove([
-      PREVIOUS_EXTENSIONS_STATE_KEY,
-      CHANGELOG_KEY,
-      LAST_CHECK_KEY,
-      FETCH_ERRORS_KEY,
-      CHECK_PROGRESS_KEY,
-      CHECK_IN_PROGRESS_KEY,
-    ]);
-    chrome.action.setBadgeText({ text: "" });
-    chrome.runtime.sendMessage({ action: TRIGGER_CHECK_ACTION });
-  }
-
   const isStale =
     !lastUpdatedData ||
     Date.now() - new Date(lastUpdatedData.timestamp).getTime() > ONE_HOUR_MS;
@@ -192,11 +188,7 @@ const Popup = () => {
           <span className="text-xs text-gray-500">
             Last updated:{" "}
             {lastUpdatedData
-              ? `${new Date(
-                  lastUpdatedData.timestamp
-                ).toLocaleDateString()} ${new Date(
-                  lastUpdatedData.timestamp
-                ).toLocaleTimeString()}`
+              ? timeAgo(lastUpdatedData.timestamp)
               : "Never"}
           </span>
         </div>
@@ -216,14 +208,6 @@ const Popup = () => {
               disabled
             >
               Checking... ({completedCount}/{totalCount})
-            </button>
-          )}
-          {!checkInProgress && (
-            <button
-              className="text-xs text-gray-400 hover:text-red-600 underline"
-              onClick={resetAndRecheck}
-            >
-              Reset &amp; Recheck
             </button>
           )}
         </div>

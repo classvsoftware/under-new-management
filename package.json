@@ -21,6 +21,7 @@
   "homepage": "https://github.com/msfrisbie/under-new-management#readme",
   "devDependencies": {
     "@parcel/config-webextension": "^2.12.0",
+    "@types/react": "^19.2.14",
     "assert": "^2.0.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^5.5.0||^6.0.0",

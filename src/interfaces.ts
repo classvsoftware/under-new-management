@@ -12,6 +12,8 @@ export interface StoredExtensionsState {
 
 export interface IChangelogEntry {
   timestamp: string;
+  beforeTimestamp: string | null;
+  afterTimestamp: string;
   before: StoredExtensionData;
   after: StoredExtensionData;
 }

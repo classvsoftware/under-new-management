@@ -14,6 +14,7 @@ import {
   IChangelogEntry,
   IExtensionCheckResult,
   IFetchError,
+  ILastUpdatedData,
   StoredExtensionData,
   StoredExtensionsState,
 } from "./interfaces";
@@ -22,6 +23,8 @@ import { getExtensionMetadata } from "./metadata";
 chrome.alarms.create("hourlyAlarm", { periodInMinutes: ALARM_INTERVAL_MIN });
 
 chrome.action.setBadgeBackgroundColor({ color: RED_BADGE_COLOR });
+
+let isRunning = false;
 
 chrome.alarms.onAlarm.addListener(() => {
   updateDeveloperData();
@@ -41,6 +44,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });
 
 async function retryExtension(extensionId: string) {
+  if (isRunning) return;
+  isRunning = true;
+  try {
+    await doRetryExtension(extensionId);
+  } finally {
+    isRunning = false;
+  }
+}
+
+async function doRetryExtension(extensionId: string) {
   const progress: IExtensionCheckResult[] =
     (await chrome.storage.local.get(CHECK_PROGRESS_KEY))[CHECK_PROGRESS_KEY] ??
     [];
@@ -113,6 +126,16 @@ async function retryExtension(extensionId: string) {
 }
 
 async function updateDeveloperData() {
+  if (isRunning) return;
+  isRunning = true;
+  try {
+    await doUpdateDeveloperData();
+  } finally {
+    isRunning = false;
+  }
+}
+
+async function doUpdateDeveloperData() {
   // Set in-progress flag
   await chrome.storage.local.set({ [CHECK_IN_PROGRESS_KEY]: true });
 
@@ -193,21 +216,27 @@ async function updateDeveloperData() {
     extensions: currentExtensions,
   };
 
-  const newChangelogEntries = generateNewChangelogEntries(
-    previousState,
-    currentState
-  );
+  const lastCheckData: ILastUpdatedData | null = (
+    await chrome.storage.local.get(LAST_CHECK_KEY)
+  )[LAST_CHECK_KEY] ?? null;
+  const lastCheckTimestamp = lastCheckData?.timestamp ?? null;
 
-  // Merge: one entry per extension, keeping the original "before"
+  // Skip changelog on the very first check (no previous baseline to compare against)
+  const newChangelogEntries = lastCheckTimestamp
+    ? generateNewChangelogEntries(previousState, currentState, lastCheckTimestamp)
+    : [];
+
+  // Merge: one entry per extension, keeping the original "before" and its timestamp
   const changelogMap = new Map(
     changelogData.map((e) => [e.after.extensionId, e])
   );
   for (const entry of newChangelogEntries) {
     const existing = changelogMap.get(entry.after.extensionId);
     if (existing) {
-      // Preserve the original "before", update "after" and timestamp
       changelogMap.set(entry.after.extensionId, {
         timestamp: entry.timestamp,
+        beforeTimestamp: existing.beforeTimestamp,
+        afterTimestamp: entry.afterTimestamp,
         before: existing.before,
         after: entry.after,
       });
@@ -246,7 +275,8 @@ async function updateDeveloperData() {
 
 function generateNewChangelogEntries(
   previousState: StoredExtensionsState,
-  currentState: StoredExtensionsState
+  currentState: StoredExtensionsState,
+  lastCheckTimestamp: string | null
 ): IChangelogEntry[] {
   const timestamp = new Date().toISOString();
   const newEntries: IChangelogEntry[] = [];
@@ -259,11 +289,27 @@ function generateNewChangelogEntries(
     const current = currentMap.get(previous.extensionId);
 
     if (current && JSON.stringify(previous) !== JSON.stringify(current)) {
-      newEntries.push({ timestamp, before: previous, after: current });
+      newEntries.push({
+        timestamp,
+        beforeTimestamp: lastCheckTimestamp,
+        afterTimestamp: timestamp,
+        before: previous,
+        after: current,
+      });
     }
   }
 
   return newEntries;
 }
 
-updateDeveloperData();
+// Only check on startup if enough time has passed since the last check
+chrome.storage.local.get(LAST_CHECK_KEY).then((result) => {
+  const lastCheck: ILastUpdatedData | null = result[LAST_CHECK_KEY] ?? null;
+  if (
+    !lastCheck ||
+    Date.now() - new Date(lastCheck.timestamp).getTime() >
+      ALARM_INTERVAL_MIN * 60 * 1000
+  ) {
+    updateDeveloperData();
+  }
+});
