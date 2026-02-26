@@ -302,14 +302,7 @@ function generateNewChangelogEntries(
   return newEntries;
 }
 
-// Only check on startup if enough time has passed since the last check
-chrome.storage.local.get(LAST_CHECK_KEY).then((result) => {
-  const lastCheck: ILastUpdatedData | null = result[LAST_CHECK_KEY] ?? null;
-  if (
-    !lastCheck ||
-    Date.now() - new Date(lastCheck.timestamp).getTime() >
-      ALARM_INTERVAL_MIN * 60 * 1000
-  ) {
-    updateDeveloperData();
-  }
+// Only run a full check on install/update, not every service worker wake
+chrome.runtime.onInstalled.addListener(() => {
+  updateDeveloperData();
 });
