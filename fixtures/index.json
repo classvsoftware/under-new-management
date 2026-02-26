@@ -1,0 +1,7 @@
+[
+  { "source": "cws", "name": "ublock-origin-lite", "id": "ddkjiahejlhfcafbddmgiahcphecmpfh" },
+  { "source": "cws", "name": "chatgpt-search", "id": "ejcfepkfckglbgocfkanmcdngdijcgld" },
+  { "source": "cws", "name": "bitwarden", "id": "nngceckbapebfimnlniiiahkandclblb" },
+  { "source": "cws", "name": "capital-one-shopping", "id": "nenlahapcbofgnanklpelkaejcehkggg" },
+  { "source": "cws", "name": "tampermonkey", "id": "dhdgffkkebhmkfjojejmpbldmpobfkfo" }
+]

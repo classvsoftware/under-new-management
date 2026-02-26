@@ -40,6 +40,7 @@ function extractExtensionIdFromCanonical(doc: Document): string {
 
 function extractDeveloperData(doc: Document): ExtensionDeveloperData {
   let developerName: string | null = null;
+  let developerAddress: string | null = null;
   let developerEmail: string | null = null;
   let developerWebsite: string | null = null;
   let offeredByName: string | null = null;
@@ -68,9 +69,41 @@ function extractDeveloperData(doc: Document): ExtensionDeveloperData {
           const infoDiv = firstDiv.nextElementSibling;
           if (infoDiv) {
             try {
-              const nameDiv = infoDiv.querySelector("div > div");
-              if (nameDiv) {
-                developerName = nameDiv.textContent?.trim() || null;
+              // The wrapper div contains child elements: an optional
+              // name/address div (with a <br>), links, and details.
+              // Find the first direct child <div> of the wrapper that
+              // isn't a <details> or <a> — that's the name/address div.
+              const wrapperDiv = infoDiv.querySelector("div > div");
+              if (wrapperDiv) {
+                for (const child of wrapperDiv.children) {
+                  if (
+                    child.tagName === "DIV" &&
+                    !child.closest("details")
+                  ) {
+                    const br = child.querySelector("br");
+                    if (br) {
+                      const nameNode = br.previousSibling;
+                      developerName =
+                        nameNode?.textContent?.trim() || null;
+                      const addressParts: string[] = [];
+                      let node = br.nextSibling;
+                      while (node) {
+                        if (node.textContent?.trim()) {
+                          addressParts.push(node.textContent.trim());
+                        }
+                        node = node.nextSibling;
+                      }
+                      developerAddress =
+                        addressParts.length > 0
+                          ? addressParts.join("\n")
+                          : null;
+                    } else {
+                      developerName =
+                        child.textContent?.trim() || null;
+                    }
+                    break;
+                  }
+                }
               }
             } catch {}
 
@@ -82,11 +115,17 @@ function extractDeveloperData(doc: Document): ExtensionDeveloperData {
             } catch {}
 
             try {
-              const details = infoDiv.querySelector("details");
-              if (details) {
-                const detailsDiv = details.querySelector("div");
-                if (detailsDiv) {
-                  developerEmail = detailsDiv.textContent?.trim() || null;
+              for (const details of infoDiv.querySelectorAll("details")) {
+                const summary = details.querySelector("summary");
+                if (!summary) continue;
+                const summaryText = summary.textContent?.trim() || "";
+                if (summaryText.includes("Email")) {
+                  const contentDiv = details.querySelector("div");
+                  if (contentDiv) {
+                    developerEmail =
+                      contentDiv.textContent?.trim() || null;
+                  }
+                  break;
                 }
               }
             } catch {}
@@ -105,6 +144,7 @@ function extractDeveloperData(doc: Document): ExtensionDeveloperData {
 
   return {
     developerName,
+    developerAddress,
     developerEmail,
     developerWebsite,
     offeredByName,
@@ -199,6 +239,7 @@ function extractDeveloperDataFromPackedArray(
       typeof developerSubArray[0] === "string" ? developerSubArray[0] : null,
     developerName:
       typeof developerSubArray[5] === "string" ? developerSubArray[5] : null,
+    developerAddress: null,
     developerWebsite:
       typeof packedData[7] === "string" ? packedData[7] : null,
     offeredByName: null,
@@ -215,6 +256,7 @@ function mergeDeveloperData(
 
   return {
     developerName: scriptData.developerName ?? domData.developerName,
+    developerAddress: scriptData.developerAddress ?? domData.developerAddress,
     developerEmail: scriptData.developerEmail ?? domData.developerEmail,
     developerWebsite: scriptData.developerWebsite ?? domData.developerWebsite,
     offeredByName: domData.offeredByName,

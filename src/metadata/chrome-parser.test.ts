@@ -3,120 +3,138 @@ import fs from "fs";
 import path from "path";
 import { parseChromeExtensionPage, ChromeParseResult } from "./chrome-parser";
 
+const FIXTURES: { source: string; name: string; id: string }[] = JSON.parse(
+  fs.readFileSync(
+    path.resolve(__dirname, "../../fixtures/index.json"),
+    "utf8"
+  )
+);
+
 function loadFixture(name: string): string {
+  const fixture = FIXTURES.find((f) => f.name === name);
   return fs.readFileSync(
-    path.resolve(__dirname, `../../fixtures/cws/${name}.html`),
+    path.resolve(__dirname, `../../fixtures/${fixture!.source}/${name}.html`),
     "utf8"
   );
 }
 
+const EXPECTED = {
+  "ublock-origin-lite": {
+    extensionName: "uBlock Origin Lite",
+    minInstallCount: 15000000,
+    minRating: 4,
+    developerName: null,
+    developerAddress: null,
+    developerEmail: "ubo@raymondhill.net",
+    developerWebsite: null,
+    offeredByName: "Raymond Hill (gorhill)",
+  },
+  "chatgpt-search": {
+    extensionName: "ChatGPT search",
+    minInstallCount: 4000000,
+    minRating: 3,
+    developerName: "OpenAI",
+    developerAddress: "3180 18th St\nSan Francisco, CA 94110-2043\nUS",
+    developerEmail: null,
+    developerWebsite: "https://chatgpt.com",
+    offeredByName: null,
+  },
+  bitwarden: {
+    extensionName: "Bitwarden Password Manager",
+    minInstallCount: 6000000,
+    minRating: 4,
+    developerName: "Bitwarden Inc.",
+    developerAddress:
+      "1 N Calle Cesar Chavez Suite 102\nSanta Barbara, CA 93103-5619\nUS",
+    developerEmail: "hello@bitwarden.com",
+    developerWebsite: "https://bitwarden.com/",
+    offeredByName: null,
+  },
+  "capital-one-shopping": {
+    extensionName: "Capital One Shopping: Save Now",
+    minInstallCount: 11000000,
+    minRating: 4,
+    developerName: null,
+    developerAddress: null,
+    developerEmail: "help@capitaloneshopping.com",
+    developerWebsite: "https://capitaloneshopping.com",
+    offeredByName: null,
+  },
+  tampermonkey: {
+    extensionName: "Tampermonkey",
+    minInstallCount: 11000000,
+    minRating: 4,
+    developerName: null,
+    developerAddress: null,
+    developerEmail: "support@tampermonkey.net",
+    developerWebsite: "http://tampermonkey.net/",
+    offeredByName: null,
+  },
+};
+
 describe("parseChromeExtensionPage", () => {
-  describe("ublock-origin-lite", () => {
-    let result: ChromeParseResult;
+  const results: Record<string, ChromeParseResult> = {};
 
-    it("parses without error", () => {
-      result = parseChromeExtensionPage(loadFixture("ublock-origin-lite"));
+  for (const [fixture, expected] of Object.entries(EXPECTED)) {
+    const fixtureId = FIXTURES.find((f) => f.name === fixture)!.id;
+
+    describe(fixture, () => {
+      it("parses without error", () => {
+        results[fixture] = parseChromeExtensionPage(loadFixture(fixture));
+      });
+
+      it("extracts the correct extension ID", () => {
+        expect(results[fixture].extensionId).toBe(fixtureId);
+      });
+
+      it("extracts developer name", () => {
+        expect(results[fixture].developerData.developerName).toBe(
+          expected.developerName
+        );
+      });
+
+      it("extracts developer address", () => {
+        expect(results[fixture].developerData.developerAddress).toBe(
+          expected.developerAddress
+        );
+      });
+
+      it("extracts developer email", () => {
+        expect(results[fixture].developerData.developerEmail).toBe(
+          expected.developerEmail
+        );
+      });
+
+      it("extracts developer website", () => {
+        expect(results[fixture].developerData.developerWebsite).toBe(
+          expected.developerWebsite
+        );
+      });
+
+      it("extracts offered by name", () => {
+        expect(results[fixture].developerData.offeredByName).toBe(
+          expected.offeredByName
+        );
+      });
+
+      it("finds the main extension in allExtensionData", () => {
+        const main = results[fixture].allExtensionData.find(
+          (e) => e.extensionId === fixtureId
+        );
+        expect(main).toBeDefined();
+        expect(main!.extensionName).toBe(expected.extensionName);
+        expect(main!.extensionRating).toBeGreaterThan(expected.minRating);
+        expect(main!.ratingCount).toBeGreaterThan(0);
+        expect(main!.installCount).toBeGreaterThanOrEqual(
+          expected.minInstallCount
+        );
+      });
+
+      it("finds recommendation extensions", () => {
+        expect(results[fixture].allExtensionData.length).toBeGreaterThan(1);
+      });
     });
-
-    it("extracts the correct extension ID", () => {
-      expect(result.extensionId).toBe("ddkjiahejlhfcafbddmgiahcphecmpfh");
-    });
-
-    it("extracts developer email", () => {
-      expect(result.developerData.developerEmail).toBe(
-        "ubo@raymondhill.net"
-      );
-    });
-
-    it("extracts offered by name", () => {
-      expect(result.developerData.offeredByName).toBe(
-        "Raymond Hill (gorhill)"
-      );
-    });
-
-    it("finds the main extension in allExtensionData", () => {
-      const main = result.allExtensionData.find(
-        (e) => e.extensionId === "ddkjiahejlhfcafbddmgiahcphecmpfh"
-      );
-      expect(main).toBeDefined();
-      expect(main!.extensionName).toBe("uBlock Origin Lite");
-      expect(main!.extensionRating).toBeGreaterThan(4);
-      expect(main!.ratingCount).toBeGreaterThan(0);
-      expect(main!.installCount).toBeGreaterThanOrEqual(15000000);
-    });
-
-    it("finds recommendation extensions", () => {
-      expect(result.allExtensionData.length).toBeGreaterThan(1);
-    });
-  });
-
-  describe("chatgpt-search", () => {
-    let result: ChromeParseResult;
-
-    it("parses without error", () => {
-      result = parseChromeExtensionPage(loadFixture("chatgpt-search"));
-    });
-
-    it("extracts the correct extension ID", () => {
-      expect(result.extensionId).toBe("ejcfepkfckglbgocfkanmcdngdijcgld");
-    });
-
-    it("extracts developer website", () => {
-      expect(result.developerData.developerWebsite).toBe(
-        "https://chatgpt.com"
-      );
-    });
-
-    it("finds the main extension in allExtensionData", () => {
-      const main = result.allExtensionData.find(
-        (e) => e.extensionId === "ejcfepkfckglbgocfkanmcdngdijcgld"
-      );
-      expect(main).toBeDefined();
-      expect(main!.extensionName).toBe("ChatGPT search");
-      expect(main!.installCount).toBeGreaterThanOrEqual(4000000);
-    });
-
-    it("finds recommendation extensions", () => {
-      expect(result.allExtensionData.length).toBeGreaterThan(1);
-    });
-  });
-
-  describe("bitwarden", () => {
-    let result: ChromeParseResult;
-
-    it("parses without error", () => {
-      result = parseChromeExtensionPage(loadFixture("bitwarden"));
-    });
-
-    it("extracts the correct extension ID", () => {
-      expect(result.extensionId).toBe("nngceckbapebfimnlniiiahkandclblb");
-    });
-
-    it("extracts developer email", () => {
-      expect(result.developerData.developerEmail).toBe(
-        "hello@bitwarden.com"
-      );
-    });
-
-    it("extracts developer website", () => {
-      expect(result.developerData.developerWebsite).toBe(
-        "https://bitwarden.com/"
-      );
-    });
-
-    it("finds the main extension in allExtensionData", () => {
-      const main = result.allExtensionData.find(
-        (e) => e.extensionId === "nngceckbapebfimnlniiiahkandclblb"
-      );
-      expect(main).toBeDefined();
-      expect(main!.extensionName).toBe("Bitwarden Password Manager");
-      expect(main!.installCount).toBeGreaterThanOrEqual(6000000);
-    });
-
-    it("finds recommendation extensions", () => {
-      expect(result.allExtensionData.length).toBeGreaterThan(1);
-    });
-  });
+  }
 
   describe("allExtensionData structure", () => {
     it("every entry has required fields with correct types", () => {

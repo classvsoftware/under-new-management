@@ -15,6 +15,7 @@ export interface ExtensionData {
 
 export interface ExtensionDeveloperData {
   developerName: string | null;
+  developerAddress: string | null;
   developerEmail: string | null;
   developerWebsite: string | null;
   offeredByName: string | null;

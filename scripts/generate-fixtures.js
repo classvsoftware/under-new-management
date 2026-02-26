@@ -7,11 +7,9 @@ const SOURCE_URLS = {
   // amo: (id) => `https://addons.mozilla.org/en-US/firefox/addon/${id}/`,
 };
 
-const FIXTURES = [
-  { source: "cws", name: "ublock-origin-lite", id: "ddkjiahejlhfcafbddmgiahcphecmpfh" },
-  { source: "cws", name: "chatgpt-search", id: "ejcfepkfckglbgocfkanmcdngdijcgld" },
-  { source: "cws", name: "bitwarden", id: "nngceckbapebfimnlniiiahkandclblb" },
-];
+const FIXTURES = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "..", "fixtures", "index.json"), "utf8")
+);
 
 async function main() {
   for (const { source, name, id } of FIXTURES) {
